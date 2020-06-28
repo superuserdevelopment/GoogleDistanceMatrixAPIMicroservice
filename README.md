@@ -15,7 +15,7 @@ A Spring Boot project for Google Maps Directions API to find road distance betwe
 
 ## Output Format
 <ol>
- <li>JSON String<br>
+ <li><b>JSON String</b><br>Sample input: <a href="">http://localhost:8080/distance/json/MumbaitoThane</a><br>
    
    ```json
    {
@@ -26,7 +26,7 @@ A Spring Boot project for Google Maps Directions API to find road distance betwe
    }
    ```
   </li>
-  <li>Plain String<br>
+  <li><b>Plain String</b><br>Sample input: <a href="">http://localhost:8080/distance/MumbaitoThane</a><br>
   
   ```
   Distance is: 22.7 km
