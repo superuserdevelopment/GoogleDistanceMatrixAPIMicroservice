@@ -12,3 +12,27 @@ A Spring Boot project for Google Maps Directions API to find road distance betwe
 </ol>
 <li>Get output.
 </ol>
+
+## Output Format
+<ol>
+ <li>JSON String<br>
+   
+   ```json
+   {
+      "Starting Location":"Mumbai, Maharashtra, India",
+      "Duration":"32 mins",
+      "Ending Location":"Thane, Maharashtra, India",
+      "Distance":"22.7 km"
+   }
+   ```
+  </li>
+  <li>Plain String<br>
+  
+  ```
+  Distance is: 22.7 km
+  Duration is: 32 mins
+  Starting Location: Mumbai, Maharashtra, India
+  Ending Location: Thane, Maharashtra, India
+  ```
+  </li>
+</ol>
