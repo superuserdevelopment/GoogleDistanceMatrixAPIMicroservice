@@ -1,5 +1,5 @@
 # GoogleDistanceMatrixAPIMicroservice
-A Spring Boot project for Google Maps Directions API to find road distance between two points based on location name or pin code.<br>Made with ♥ in Java
+A Spring Boot project for Google Distance Matrix API to find road distance between two points based on location name or pin code.<br>Made with ♥ in Java
 ## Steps to excution:
 <ol>
 <li>Execute the DemoApplication.java file
