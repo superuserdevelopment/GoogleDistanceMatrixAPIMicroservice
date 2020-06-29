@@ -21,11 +21,11 @@ public class DirectionsAPIEndPoint {
     String endLoc;
     String error = "";
 
-    private void updateData(final String point1, final String point2) {
-        String response = getResponse("https://maps.googleapis.com/maps/api/directions/json?origin=" + point1
-                + "&destination=" + point2 + "&key=AIzaSyDXlLjUgUAC6GgdUZD4rfmlHKsZrISplgs");
+    private void updateData(final String point1, final String point2, boolean isPin) {
+        String response = getResponse("https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=pincode+"+point1+"+india&destinations=pincode+"+point2+"+india&key=AIzaSyDXlLjUgUAC6GgdUZD4rfmlHKsZrISplgs");
         JSONObject ob = null;
         error = "";
+        //String status ="";
         // Incase a error is returned by the getResponse() function
         if (response.startsWith("Error:")) {
             error = response;
@@ -37,26 +37,51 @@ public class DirectionsAPIEndPoint {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-
+            JSONArray rows = (JSONArray)ob.get("rows");
+            JSONArray elements = (JSONArray)((JSONObject)rows.get(0)).get("elements");
+            JSONObject status = (JSONObject)elements.get(0);
             // If valid Places are entered
-            if (ob.get("status").equals("OK")) {
-                JSONArray ja = (JSONArray) ob.get("routes");
-                JSONObject ja2 = (JSONObject) ja.get(0);
-                JSONArray ja3 = (JSONArray) ja2.get("legs");
-                JSONObject ja4 = (JSONObject) ja3.get(0);
-                JSONObject ja5 = (JSONObject) ja4.get("distance");
-                JSONObject ja6 = (JSONObject) ja4.get("duration");
-
-                distance = ja5.get("text").toString();
-                duration = ja6.get("text").toString();
-                startLoc = ja4.get("start_address").toString();
-                endLoc = ja4.get("end_address").toString();
-
+            if (status.get("status").equals("OK")) {
+                JSONArray destination_addresses = (JSONArray) ob.get("destination_addresses");
+                JSONArray origin_addresses = (JSONArray)ob.get("origin_addresses");
+                JSONObject distanceObj = (JSONObject)((JSONObject)elements.get(0)).get("distance");
+                JSONObject durationObj = (JSONObject)((JSONObject)elements.get(0)).get("duration");
+                distance = distanceObj.get("text").toString();
+                duration = durationObj.get("text").toString();
+                startLoc = origin_addresses.get(0).toString();
+                endLoc = destination_addresses.get(0).toString();
             }
-            // If invalid places are entered
-            else if (ob.get("status").equals("NOT_FOUND") || ob.get("status").equals("ZERO_RESULTS")) {
+            // Making provisons for all error codes
+            else if (ob.get("status").equals("NOT_FOUND") || status.get("status").equals("ZERO_RESULTS") || ob.get("status").equals("ZERO_RESULTS") || status.get("status").equals("NOT_FOUND")) {
                 error = "Invalid Places Passed, Please Retry";
             }
+            else if(ob.get("status").equals("INVALID_REQUEST")){
+                System.out.println(ob.toJSONString());
+                error = "The request provided was invalid";
+            }
+            else if(ob.get("status").equals("MAX_ELEMENTS_EXCEEDED")){
+                System.out.println(ob.toJSONString());
+                error = "The product of origins and destinations exceeds the per-query limit";
+            }
+            else if(ob.get("status").equals("OVER_DAILY_LIMIT")){
+                error = "The API key is missing or invalid. or Billing has not been enabled on your account. or A self-imposed usage cap has been exceeded. or The provided method of payment is no longer valid (for example, a credit card has expired).";
+            }
+            else if(ob.get("status").equals("OVER_QUERY_LIMIT")){
+                System.out.println(ob.toJSONString());
+                error = "The service has received too many requests from your application within the allowed time period.";
+            }
+            else if(ob.get("status").equals("REQUEST_DENIED")){
+                System.out.println(ob.toJSONString());
+                error = "The service denied use of the Distance Matrix service by your application.";
+            }
+            else if(ob.get("status").equals("UNKNOWN_ERROR")){
+                System.out.println(ob.toJSONString());
+                error = "Distance Matrix request could not be processed due to a server error. The request may succeed if you try again.";
+            }            
+            else if(status.get("status").equals("MAX_ROUTE_LENGTH_EXCEEDED")){
+                error = "The requested route is too long and cannot be processed.";
+            }
+
             // In case of any other error
             else {
                 error = response;
@@ -69,7 +94,7 @@ public class DirectionsAPIEndPoint {
     public String getDistance(@PathVariable("point1") final String point1,
             @PathVariable("point2") final String point2) {
         System.out.println("JSON Request recieved");
-        updateData(point1, point2);
+        updateData(point1, point2, false);
         if (error.isEmpty()) {
             JSONObject output = new JSONObject();
             output.put("Distance", distance);
@@ -78,7 +103,9 @@ public class DirectionsAPIEndPoint {
             output.put("Ending Location", endLoc);
             return output.toJSONString();
         } else {
-            return error;
+            JSONObject output = new JSONObject();
+            output.put("error", error);
+            return output.toJSONString();
         }
     }
 
@@ -86,7 +113,7 @@ public class DirectionsAPIEndPoint {
     public String getDistanceString(@PathVariable("point1") final String point1,
             @PathVariable("point2") final String point2) {
         System.out.println("Plain Text Request recieved");
-        updateData(point1, point2);
+        updateData(point1, point2, false);
         if (error.isEmpty()) {
             return "Distance is: " + distance + "<br>Duration is: " + duration + "<br>Starting Location: " + startLoc
                     + "<br>Ending Location: " + endLoc;
